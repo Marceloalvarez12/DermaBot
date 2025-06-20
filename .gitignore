@@ -1,0 +1,23 @@
+# Ignorar caché de Python
+__pycache__/
+*.py[cod]
+
+# Archivos sensibles
+.env
+
+# Modelos de IA pesados
+*.h5
+*.keras
+
+# Logs
+*.log
+
+# Entornos virtuales
+env/
+venv/
+.dermabot-env/
+
+# Archivos del sistema/editor
+.DS_Store
+.vscode/
+.idea/
