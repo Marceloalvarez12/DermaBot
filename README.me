@@ -1,0 +1,49 @@
+## Instalación
+Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno local.
+### 1. Clonar el repositorio
+```
+git clone https://github.com/usuario/nombre-del-proyecto.git
+cd nombre-del-proyecto
+```
+### 2. Crear y activar un entorno virtual
+```
+# Crear el entorno virtual
+python -m venv env
+
+# Activar el entorno virtual
+# En Windows
+.\env\Scripts\activate
+
+# En macOS o Linux
+source venv/bin/activate
+```
+### 3. Instalar las dependencias
+```
+pip install -r requirements.txt
+```
+### 4. Configurar las variables de entorno
+en el root del proyecto crea un archivo **.env** y dentro de el escribe las credenciales necesarias para el proyecto tales como las credenciales de la base de datos postgresql:
+```
+POSTGRES_DB=DermaDoctorDB
+POSTGRES_USER=YOUR_USER_POSTGRES
+POSTGRES_PASSWORD=YOUR_PASSWORD_POSTGRES
+```
+Además de la api key de sendGrid y las credenciales correspondientes al mail que se utilizará para enviar mensajes a los usuarios:
+```
+SENDGRID_API_KEY=YOUR_API_KEY_HERE
+EMAIL_HOST_USER=YOUR_EMAIL_SENDER_HERE
+EMAIL_HOST_PASSWORD=YOUR_EMAIL_PASSWORD_HERE
+```
+
+### 5. Aplicar las migraciones de la base de datos
+Primero debes ejecutar:
+```
+py manage.py makemigrations
+```
+Luego:
+```
+py manage.py migrate
+```
+### 6. Crear un superusuario
+```
+py manage.py createsuperuser

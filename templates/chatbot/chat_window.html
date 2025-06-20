@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %} 
+{# {% load widget_tweaks %} # Descomenta si terminas instalando y usando django-widget-tweaks #}
+
+{% block title %}Conversación con DermaBot{% endblock %}
+
+{% block content %}
+<div class="chat-container mt-3">
+    <div class="chat-header">
+        <h5>Consulta Dermatológica Preliminar</h5>
+        {% if user_identifier %}
+            <p><small>Chateando como: {{ user_identifier }}</small></p>
+        {% endif %}
+    </div>
+    <div class="chat-messages" id="chat-messages-area">
+        {% for msg in messages %}
+            <div class="message {% if msg.is_bot %}bot{% else %}user{% endif %}">
+                <div> {# Contenedor para el actor y el contenido/imagen #}
+                    <span class="actor">{% if msg.is_bot %}DermaBot{% else %}{{ user_identifier|capfirst }}{% endif %}:</span>
+                    <div class="content">
+                        {# Mostrar contenido de texto si existe #}
+                        {% if msg.content %}
+                            <p style="margin-bottom: {% if msg.image %}5px{% else %}0{% endif %};">{{ msg.content|linebreaksbr }}</p>
+                        {% endif %}
+
+                        {# Mostrar imagen si existe en el mensaje #}
+                        {% if msg.image and msg.image.url %}
+                            <div class="mt-1">
+                                {% if not msg.is_bot %} {# Solo para mensajes de usuario o si el bot también puede enviar imágenes #}
+                                    <p style="font-size: 0.9em; margin-bottom: 3px;"><em>Imagen adjunta:</em></p>
+                                {% endif %}
+                                <a href="{{ msg.image.url }}" target="_blank" title="Ver imagen completa">
+                                    <img src="{{ msg.image.url }}" 
+                                         alt="Imagen {{ msg.image.name|slice:'-20:' }}" 
+                                         style="max-width: 200px; max-height: 200px; border-radius: 5px; border: 1px solid #ddd; display: block; margin-top: 5px; cursor: pointer;">
+                                </a>
+                                {# Mostrar la predicción de la CNN si está disponible para esta imagen en el mensaje #}
+                                {% if msg.cnn_predicted_desease %}
+                                    <small class="d-block text-muted mt-1" style="font-size: 0.85em;">
+                                        <em>Sugerencia del análisis de imagen (CNN):<br> 
+                                            <strong>{{ msg.cnn_predicted_desease.name_desease }}</strong>
+                                        {% if msg.cnn_confidence is not None %}
+                                            (Confianza: {{ msg.cnn_confidence|floatformat:1 }}%)
+                                        {% endif %}
+                                        </em>
+                                    </small>
+                                {% elif msg.image and not msg.is_bot %} {# Mensaje por defecto si no hay predicción CNN para una imagen de usuario #}
+                                     <small class="d-block text-muted mt-1" style="font-size: 0.85em;">
+                                        <em>Imagen enviada para análisis.</em>
+                                    </small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted text-center mt-3">DermaBot está listo. Escribe tu consulta o sube una imagen.</p>
+        {% endfor %}
+    </div>
+    <div class="message-form">
+        {# Es CRUCIAL añadir enctype="multipart/form-data" para la subida de archivos #}
+        <form method="post" action="{% url 'chatbot:chat_window' conversation_id=conversation.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-2">
+                {# {{ form.user_input.label_tag }} #} {# El label es vacío en forms.py #}
+                {{ form.user_input }} {# Django renderizará el widget Textarea #}
+                {% if form.user_input.errors %}
+                    <div class="text-danger mt-1" style="font-size: 0.9em;">
+                        {% for error in form.user_input.errors %}<small>- {{ error }}</small><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                 {{ form.image_upload.label_tag }}
+                {{ form.image_upload }} {# Django renderizará el widget FileInput #}
+                 {% if form.image_upload.errors %}
+                    <div class="text-danger mt-1" style="font-size: 0.9em;">
+                        {% for error in form.image_upload.errors %}<small>- {{ error }}</small><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %} {# Para el error de validación .clean() del formulario #}
+                <div class="alert alert-danger p-2 mt-2" style="font-size: 0.9em;">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-success w-100">Enviar Mensaje / Imagen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatMessagesArea = document.getElementById('chat-messages-area');
+        if (chatMessagesArea) {
+            chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+        }
+
+        // Opcional: limpiar el campo de subida de archivo después de enviar el formulario
+        const chatForm = document.querySelector('.message-form form');
+        if (chatForm) {
+            chatForm.addEventListener('submit', function() {
+                // Esto es un poco un truco, podrías necesitar un delay si la redirección es muy rápida
+                // o si tu frontend es una SPA, manejarías esto de forma diferente.
+                // Para un envío de formulario estándar, el campo se limpia con la recarga de la página.
+                // Si usaras AJAX, sí necesitarías limpiar el campo de archivo:
+                // const fileInput = chatForm.querySelector('input[type="file"]');
+                // if (fileInput) {
+                //     fileInput.value = ''; // Limpiar el input de archivo
+                // }
+            });
+        }
+    });
+</script>
+{% endblock %}
