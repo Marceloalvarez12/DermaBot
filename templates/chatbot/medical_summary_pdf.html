@@ -1,0 +1,59 @@
+
+<!-- templates/chatbot/medical_summary_pdf.html -->
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resumen Conversación {{ conversation.id|stringformat:"s"|slice:":8" }}</title>
+    <style type="text/css">
+        @page { size: a4 portrait; margin: 1.5cm; }
+        body { font-family: "Helvetica", "Arial", sans-serif; font-size: 10pt; line-height: 1.4; }
+        h3, h4 { margin-bottom: 5px; padding-bottom: 2px; color: #333; }
+        h3 { font-size: 16pt; text-align: center; border-bottom: 1px solid #ccc; margin-bottom: 15px;}
+        h4 { font-size: 12pt; border-bottom: 1px dotted #eee; margin-top: 15px; }
+        p { margin-top: 0; margin-bottom: 8px; }
+        strong { font-weight: bold; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header p { margin-bottom: 3px; font-size: 9pt; }
+        .section { margin-bottom: 12px; }
+        .disclaimer { margin-top: 25px; font-size: 8pt; color: #555555; border-top: 1px solid #cccccc; padding-top: 10px; text-align: justify; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h3>DermaBot - Resumen de Consulta Preliminar IA</h3>
+        <p><strong>ID Conversación:</strong> {{ conversation.id|stringformat:"s"|slice:":8" }}</p>
+        <p><strong>Fecha de Creación del Resumen:</strong> {{ summary.created_at|date:"d/m/Y H:i" }} (Última Actualización: {{ summary.last_updated|date:"d/m/Y H:i" }})</p>
+    </div>
+
+    <div class="section">
+        <h4>Información Recopilada Durante la Conversación</h4>
+        {% if summary.main_complaint %}<p><strong>Motivo Principal de Consulta:</strong> {{ summary.main_complaint|escape|linebreaksbr }}</p>{% endif %}
+        {% if summary.symptoms_reported %}<p><strong>Síntomas Reportados:</strong> {{ summary.symptoms_reported|escape|linebreaksbr }}</p>{% endif %}
+        {% if summary.location_of_symptoms %}<p><strong>Localización:</strong> {{ summary.location_of_symptoms|escape }}</p>{% endif %}
+        {% if summary.duration_of_symptoms %}<p><strong>Duración:</strong> {{ summary.duration_of_symptoms|escape }}</p>{% endif %}
+        {% if summary.aggravating_factors %}<p><strong>Factores Agravantes:</strong> {{ summary.aggravating_factors|escape|linebreaksbr }}</p>{% endif %}
+        {% if summary.alleviating_factors %}<p><strong>Factores de Alivio:</strong> {{ summary.alleviating_factors|escape|linebreaksbr }}</p>{% endif %}
+        {% if summary.previous_history %}<p><strong>Antecedentes Relevantes:</strong> {{ summary.previous_history|escape|linebreaksbr }}</p>{% endif %}
+        {% if summary.image_analysis_summary_from_cnn %}<p><strong>Resumen del Análisis de Imagen (CNN):</strong> {{ summary.image_analysis_summary_from_cnn|escape|linebreaksbr }}</p>{% endif %}
+        
+        {% if summary.summary_text_generated_by_llm and not summary.main_complaint %} {# Si no hay campos específicos, mostrar el texto crudo #}
+             <p><strong>Resumen General de la IA:</strong><br>{{ summary.summary_text_generated_by_llm|escape|linebreaksbr }}</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h4>Orientación Tentativa Proporcionada por DermaBot</h4>
+        {% if summary.tentative_orientation_by_llm %}
+            <p>{{ summary.tentative_orientation_by_llm|escape|linebreaksbr }}</p>
+        {% else %}
+            <p><em>Aún no se ha proporcionado una orientación final o un resumen detallado por parte del asistente.</em></p>
+        {% endif %}
+    </div>
+
+    <div class="disclaimer">
+        <strong>Nota Importante:</strong> Este resumen ha sido generado por un asistente de Inteligencia Artificial (DermaBot) y se basa en la información proporcionada durante la conversación. Se considera una ficha preliminar únicamente con fines informativos y de orientación general. NO constituye un diagnóstico médico, no reemplaza una consulta médica profesional, ni debe ser utilizado para tomar decisiones sobre tratamientos o salud. Es fundamental que toda la información aquí contenida sea revisada, validada y contextualizada por un dermatólogo u otro profesional de la salud cualificado antes de tomar cualquier acción. Autofarmacarse o demorar una consulta médica adecuada puede tener consecuencias negativas para su salud.
+    </div>
+</body>
+</html>

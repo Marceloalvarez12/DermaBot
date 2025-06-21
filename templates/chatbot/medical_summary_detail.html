@@ -1,0 +1,111 @@
+<!-- templates/chatbot/medical_summary_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}
+  Ficha Médica Preliminar - Conversación {{ medical_summary.conversation.id|stringformat:"s"|slice:":8" }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2 class="mb-0">Ficha Médica Preliminar (IA)</h2>
+    </div>
+    <div class="card-body">
+      {% if medical_summary %}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p><strong>ID de Conversación:</strong> {{ medical_summary.conversation.id }}</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p><strong>Resumen Creado:</strong> {{ medical_summary.created_at|date:"d/m/Y H:i" }}</p>
+                <p><strong>Última Actualización:</strong> {{ medical_summary.last_updated|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        <hr>
+
+        <h4>Información Recopilada</h4>
+        <dl class="row">
+            {% if medical_summary.main_complaint %}
+              <dt class="col-sm-3">Motivo Principal:</dt>
+              <dd class="col-sm-9">{{ medical_summary.main_complaint|linebreaksbr }}</dd>
+            {% endif %}
+
+            {% if medical_summary.symptoms_reported %}
+              <dt class="col-sm-3">Síntomas Reportados:</dt>
+              <dd class="col-sm-9">{{ medical_summary.symptoms_reported|linebreaksbr }}</dd>
+            {% endif %}
+
+            {% if medical_summary.location_of_symptoms %}
+              <dt class="col-sm-3">Localización:</dt>
+              <dd class="col-sm-9">{{ medical_summary.location_of_symptoms }}</dd>
+            {% endif %}
+
+            {% if medical_summary.duration_of_symptoms %}
+              <dt class="col-sm-3">Duración:</dt>
+              <dd class="col-sm-9">{{ medical_summary.duration_of_symptoms }}</dd>
+            {% endif %}
+            
+            {% if medical_summary.aggravating_factors %}
+              <dt class="col-sm-3">Factores Agravantes:</dt>
+              <dd class="col-sm-9">{{ medical_summary.aggravating_factors|linebreaksbr }}</dd>
+            {% endif %}
+
+            {% if medical_summary.alleviating_factors %}
+              <dt class="col-sm-3">Factores de Alivio:</dt>
+              <dd class="col-sm-9">{{ medical_summary.alleviating_factors|linebreaksbr }}</dd>
+            {% endif %}
+
+            {% if medical_summary.previous_history %}
+              <dt class="col-sm-3">Antecedentes Relevantes:</dt>
+              <dd class="col-sm-9">{{ medical_summary.previous_history|linebreaksbr }}</dd>
+            {% endif %}
+
+            {% if medical_summary.image_analysis_summary_from_cnn %}
+              <dt class="col-sm-3">Análisis de Imagen (CNN):</dt>
+              <dd class="col-sm-9">{{ medical_summary.image_analysis_summary_from_cnn|linebreaksbr }}</dd>
+            {% endif %}
+        </dl>
+        
+        {% if medical_summary.tentative_orientation_by_llm %}
+            <h4 class="mt-4">Orientación Tentativa del Bot</h4>
+            <div class="alert alert-info">
+                {{ medical_summary.tentative_orientation_by_llm|linebreaksbr }}
+            </div>
+        {% endif %}
+
+        {% if medical_summary.summary_text_generated_by_llm %}
+            <h4 class="mt-4">Resumen Detallado Generado por IA (Texto Crudo)</h4>
+            <pre style="white-space: pre-wrap; word-wrap: break-word; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #eee;">{{ medical_summary.summary_text_generated_by_llm|linebreaksbr }}</pre>
+        {% endif %}
+
+        <hr>
+        <div class="mt-4 text-center">
+            <a href="{% url 'chatbot:medical_summary_pdf' summary_id_uuid=medical_summary.pk %}" class="btn btn-danger me-2" target="_blank">
+                <i class="fas fa-file-pdf"></i> Ver / Descargar PDF
+            </a>
+            <a href="{% url 'chatbot:chat_window' conversation_id=medical_summary.conversation.id %}" class="btn btn-secondary me-2">
+                Volver al Chat
+            </a>
+             <a href="{% url 'chatbot:conversation_history' %}" class="btn btn-outline-info">
+                Ver Historial de Fichas
+            </a>
+        </div>
+
+      {% else %}
+        <div class="alert alert-warning mt-3" role="alert">
+          No se encontró la ficha médica solicitada o no tiene contenido para mostrar.
+        </div>
+        <div class="text-center mt-3">
+             <a href="{% url 'chatbot:conversation_history' %}" class="btn btn-info">
+                Ir al Historial de Fichas
+            </a>
+        </div>
+      {% endif %}
+    </div>
+    <div class="card-footer text-muted text-center">
+        <small>Recuerde: Esta es una orientación preliminar y NO reemplaza una consulta médica profesional.</small>
+    </div>
+  </div>
+</div>
+{% endblock %}
